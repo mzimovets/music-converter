@@ -180,7 +180,7 @@ export default function App() {
       <input
         ref={fileInputRef}
         type="file"
-        accept="audio/*"
+        accept="audio/*,.mp3,.wav,.wave,.flac,.ogg,.oga,.opus,.aac,.m4a,.m4b,.wma,.aiff,.aif,.amr,.weba,.webm,.mp4,.ac3,.alac,.caf,.au"
         className="hidden"
         onChange={handleInputChange}
       />
