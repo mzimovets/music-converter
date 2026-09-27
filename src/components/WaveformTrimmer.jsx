@@ -77,11 +77,12 @@ export default function WaveformTrimmer({ url, initialStart, initialEnd, onChang
       if (!endFocusedRef.current) setEndText(formatTimePrecise(region.end))
       onChange?.({ start: region.start, end: region.end, duration: ws.getDuration() })
     }
-    // Пока тянут ползунок — сразу проигрываем звук с этой точки (скраб-прослушивание)
+    // Пока тянут ползунок — сразу проигрываем звук с этой точки (скраб-прослушивание).
+    // play(from, region.end) задаёт нативную stopAtPosition — воспроизведение
+    // гарантированно останавливается на правой границе, а не убегает за неё.
     const scrubOnDrag = (region, side) => {
-      const pos = side === 'end' ? region.end : region.start
-      ws.setTime(pos)
-      if (!ws.isPlaying()) ws.play()
+      const from = side === 'end' ? Math.max(region.start, region.end - 1.2) : region.start
+      ws.play(from, region.end)
       commitRange(region)
     }
     regions.on('region-update', scrubOnDrag)
@@ -90,17 +91,11 @@ export default function WaveformTrimmer({ url, initialStart, initialEnd, onChang
       zoomToRegion(region)
     })
 
-    // Двигающаяся полоска текущей позиции воспроизведения +
-    // жёсткая остановка на правой границе выделения (не убегает за неё)
+    // Двигающаяся полоска текущей позиции воспроизведения
     const updatePlayhead = (t) => {
       const dur = ws.getDuration() || 1
       const pct = Math.min(100, Math.max(0, (t / dur) * 100))
       if (playheadRef.current) playheadRef.current.style.left = `${pct}%`
-      const region = regionRef.current
-      if (region && ws.isPlaying() && t >= region.end - 0.02) {
-        ws.pause()
-        ws.setTime(region.end)
-      }
     }
     ws.on('timeupdate', updatePlayhead)
     ws.on('play', () => setIsPlaying(true))
@@ -133,6 +128,12 @@ export default function WaveformTrimmer({ url, initialStart, initialEnd, onChang
     } else {
       regionRef.current.play(true)
     }
+  }
+
+  const restartPreview = () => {
+    const region = regionRef.current
+    if (!region || !wsRef.current) return
+    wsRef.current.play(region.start, region.end)
   }
 
   const handleTimeBlur = (field) => (e) => {
@@ -168,15 +169,27 @@ export default function WaveformTrimmer({ url, initialStart, initialEnd, onChang
       </div>
 
       <div className="flex items-center justify-between text-xs text-[var(--muted)]">
-        <button
-          type="button"
-          onClick={togglePreview}
-          disabled={!isReady}
-          className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 bg-[var(--surface-secondary)] text-[var(--foreground)] hover:bg-[var(--accent-soft)] hover:text-[var(--accent-soft-foreground)] transition-colors disabled:opacity-50"
-        >
-          <Icon name={isPlaying ? 'pause' : 'play'} className="w-3.5 h-3.5" />
-          {isPlaying ? 'Стоп' : 'Прослушать выделенное'}
-        </button>
+        <div className="flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={togglePreview}
+            disabled={!isReady}
+            className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 bg-[var(--surface-secondary)] text-[var(--foreground)] hover:bg-[var(--accent-soft)] hover:text-[var(--accent-soft-foreground)] transition-colors disabled:opacity-50"
+          >
+            <Icon name={isPlaying ? 'pause' : 'play'} className="w-3.5 h-3.5" />
+            {isPlaying ? 'Стоп' : 'Прослушать выделенное'}
+          </button>
+          <button
+            type="button"
+            onClick={restartPreview}
+            disabled={!isReady}
+            aria-label="Начать сначала"
+            title="Начать сначала"
+            className="flex items-center justify-center w-8 h-8 rounded-lg bg-[var(--surface-secondary)] text-[var(--foreground)] hover:bg-[var(--accent-soft)] hover:text-[var(--accent-soft-foreground)] transition-colors disabled:opacity-50"
+          >
+            <Icon name="refresh" className="w-3.5 h-3.5" />
+          </button>
+        </div>
         <span className="tabular-nums">
           длительность {formatTime(Math.max(0, range.end - range.start))}
         </span>
