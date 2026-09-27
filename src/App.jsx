@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Button, Card, ProgressBar, Input } from '@heroui/react'
 import Icon from './components/Icon'
 import WaveformTrimmer from './components/WaveformTrimmer'
+import AudioPlayer from './components/AudioPlayer'
 import { FORMATS, detectFormat, formatBytes, sanitizeFileName } from './lib/formats'
 import { convertAudio } from './lib/ffmpeg'
 
@@ -266,6 +267,8 @@ export default function App() {
 
           {stage === STAGE.READY && (
             <div className="animate-pop-in flex flex-col gap-4">
+              {!trimEnabled && sourceUrl && <AudioPlayer url={sourceUrl} />}
+
               <button
                 type="button"
                 onClick={() => setTrimEnabled((v) => !v)}
@@ -374,9 +377,20 @@ export default function App() {
 
           {stage === STAGE.DONE && (
             <div className="animate-pop-in flex flex-col gap-4">
-              <div className="flex items-center gap-2 text-[var(--success)]">
-                <Icon name="verified-check" className="w-5 h-5" />
-                <span className="font-medium">Готово! Файл сконвертирован в {targetFormat?.label}</span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setStage(STAGE.READY)}
+                  aria-label="Назад к выбору формата и обрезке"
+                  title="Назад"
+                  className="w-8 h-8 -ml-1 rounded-lg flex items-center justify-center text-[var(--muted)] hover:text-[var(--foreground)] hover:bg-[var(--surface-secondary)] transition-colors shrink-0"
+                >
+                  <Icon name="alt-arrow-left" className="w-4 h-4" />
+                </button>
+                <div className="flex items-center gap-2 text-[var(--success)]">
+                  <Icon name="verified-check" className="w-5 h-5" />
+                  <span className="font-medium">Готово! Файл сконвертирован в {targetFormat?.label}</span>
+                </div>
               </div>
 
               <div className="flex flex-col gap-1.5">
