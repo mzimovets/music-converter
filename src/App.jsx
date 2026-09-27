@@ -308,15 +308,15 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => setTrimEnabled((v) => !v)}
-                className={`flex items-center justify-between gap-2 rounded-xl border px-4 py-3 transition-colors ${
+                className={`flex items-center justify-between gap-2 rounded-xl border px-4 py-3 transition-colors overflow-hidden ${
                   trimEnabled
                     ? 'border-[var(--accent)] bg-[var(--accent-soft)]'
                     : 'border-[var(--border)] hover:border-[var(--accent)]'
                 }`}
               >
-                <span className="flex items-center gap-2 text-sm font-medium text-[var(--foreground)]">
-                  <Icon name="video-frame-cut-2" className="w-4 h-4 text-[var(--accent)]" />
-                  Обрезать аудио перед конвертацией
+                <span className="flex items-center gap-2 min-w-0 text-sm font-medium text-[var(--foreground)]">
+                  <Icon name="video-frame-cut-2" className="w-4 h-4 shrink-0 text-[var(--accent)]" />
+                  <span className="min-w-0">Обрезать аудио перед конвертацией</span>
                 </span>
                 <span
                   className={`w-9 h-5 rounded-full relative transition-colors shrink-0 ${
@@ -324,8 +324,8 @@ export default function App() {
                   }`}
                 >
                   <span
-                    className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${
-                      trimEnabled ? 'translate-x-4' : 'translate-x-0.5'
+                    className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${
+                      trimEnabled ? 'translate-x-4' : 'translate-x-0'
                     }`}
                   />
                 </span>
