@@ -161,6 +161,31 @@ export function formatTime(seconds) {
   return `${m}:${String(s).padStart(2, '0')}`
 }
 
+// Для точного редактирования: "1:23.456"
+export function formatTimePrecise(seconds) {
+  if (!Number.isFinite(seconds) || seconds < 0) seconds = 0
+  const m = Math.floor(seconds / 60)
+  const s = Math.floor(seconds % 60)
+  const ms = Math.round((seconds - Math.floor(seconds)) * 1000)
+  return `${m}:${String(s).padStart(2, '0')}.${String(ms).padStart(3, '0')}`
+}
+
+// Разбирает "1:23.456", "1:23", "23.456", "23" в секунды
+export function parseTimeInput(str) {
+  if (!str) return null
+  const trimmed = str.trim().replace(',', '.')
+  const match = /^(?:(\d+):)?(\d{1,2})(?:\.(\d{1,3}))?$/.exec(trimmed)
+  if (!match) {
+    const asNum = Number(trimmed)
+    return Number.isFinite(asNum) ? asNum : null
+  }
+  const [, mm, ss, ms] = match
+  const minutes = mm ? parseInt(mm, 10) : 0
+  const secs = parseInt(ss, 10)
+  const millis = ms ? parseInt(ms.padEnd(3, '0'), 10) : 0
+  return minutes * 60 + secs + millis / 1000
+}
+
 export function sanitizeFileName(name) {
   return (name || '')
     .trim()
