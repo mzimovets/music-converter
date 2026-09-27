@@ -55,7 +55,7 @@
 html,
 body,
 #root {
-  height: 100%;
+  min-height: 100%;
 }
 
 body {
@@ -69,7 +69,12 @@ body {
     sans-serif;
   /* Ровно var(--background) у самого верха страницы — совпадает со
      status bar (theme-color), поэтому никакой полосы на стыке нет.
-     Акцентное свечение уходит вниз, подальше от верхнего края. */
+     Акцентное свечение уходит вниз, подальше от верхнего края.
+     Без background-attachment: fixed — он привязывает градиент к высоте
+     экрана, а не страницы, и когда форма (после загрузки файла) делает
+     страницу длиннее экрана, ниже этой границы фон рисуется заново —
+     видимая полоса-стык. С обычным attachment фон растягивается на всю
+     реальную высоту контента (html/body теперь min-height, не height). */
   background:
     radial-gradient(
       ellipse 70% 45% at 50% 55%,
@@ -83,7 +88,6 @@ body {
       color-mix(in oklch, var(--accent) 6%, var(--background)) 45%,
       var(--background) 100%
     );
-  background-attachment: fixed;
 }
 
 @keyframes shimmer {
