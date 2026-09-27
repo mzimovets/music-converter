@@ -48,6 +48,38 @@ export const FORMATS = [
     description: 'Как в iTunes / Apple Music',
     args: ['-c:a', 'aac', '-b:a', '192k'],
   },
+  {
+    id: 'alac',
+    label: 'ALAC',
+    ext: 'm4a',
+    mime: 'audio/mp4',
+    description: 'Apple Lossless, без потерь',
+    args: ['-c:a', 'alac'],
+  },
+  {
+    id: 'wma',
+    label: 'WMA',
+    ext: 'wma',
+    mime: 'audio/x-ms-wma',
+    description: 'Для старых Windows-плееров',
+    args: ['-c:a', 'wmav2', '-b:a', '192k'],
+  },
+  {
+    id: 'aiff',
+    label: 'AIFF',
+    ext: 'aiff',
+    mime: 'audio/aiff',
+    description: 'Без потерь, стандарт Apple',
+    args: ['-c:a', 'pcm_s16be'],
+  },
+  {
+    id: 'ac3',
+    label: 'AC3',
+    ext: 'ac3',
+    mime: 'audio/ac3',
+    description: 'Dolby Digital, для ТВ и ресиверов',
+    args: ['-c:a', 'ac3', '-b:a', '192k'],
+  },
 ]
 
 const EXT_TO_FORMAT_ID = {
@@ -68,6 +100,8 @@ const EXT_TO_FORMAT_ID = {
   weba: 'opus',
   webm: 'opus',
   mp4: 'aac',
+  ac3: 'ac3',
+  alac: 'alac',
 }
 
 const MIME_TO_FORMAT_ID = {

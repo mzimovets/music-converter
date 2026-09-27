@@ -123,3 +123,14 @@ body {
 .dropzone-active {
   box-shadow: 0 0 0 2px var(--accent);
 }
+
+/* Увеличенная область захвата ручек обрезки — удобнее попадать пальцем на телефоне */
+.wf-container .w-full > div::part(region-handle) {
+  width: 16px !important;
+}
+.wf-container .w-full > div::part(region-handle-left) {
+  border-radius: 6px 0 0 6px !important;
+}
+.wf-container .w-full > div::part(region-handle-right) {
+  border-radius: 0 6px 6px 0 !important;
+}

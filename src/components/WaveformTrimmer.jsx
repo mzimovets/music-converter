@@ -9,6 +9,7 @@ export default function WaveformTrimmer({ url, initialStart, initialEnd, onChang
   const containerRef = useRef(null)
   const wsRef = useRef(null)
   const regionRef = useRef(null)
+  const playheadRef = useRef(null)
   const [range, setRange] = useState({ start: initialStart ?? 0, end: initialEnd ?? 0 })
   const [isPlaying, setIsPlaying] = useState(false)
   const [isReady, setIsReady] = useState(false)
@@ -48,11 +49,27 @@ export default function WaveformTrimmer({ url, initialStart, initialEnd, onChang
       setIsReady(true)
     })
 
-    const handleUpdate = (region) => {
+    const commitRange = (region) => {
       setRange({ start: region.start, end: region.end })
       onChange?.({ start: region.start, end: region.end, duration: ws.getDuration() })
     }
-    regions.on('region-updated', handleUpdate)
+    // Пока тянут ползунок — сразу проигрываем звук с этой точки (скраб-прослушивание)
+    const scrubOnDrag = (region, side) => {
+      const pos = side === 'end' ? region.end : region.start
+      ws.setTime(pos)
+      if (!ws.isPlaying()) ws.play()
+      commitRange(region)
+    }
+    regions.on('region-update', scrubOnDrag)
+    regions.on('region-updated', commitRange)
+
+    // Двигающаяся полоска текущей позиции воспроизведения
+    const updatePlayhead = (t) => {
+      const dur = ws.getDuration() || 1
+      const pct = Math.min(100, Math.max(0, (t / dur) * 100))
+      if (playheadRef.current) playheadRef.current.style.left = `${pct}%`
+    }
+    ws.on('timeupdate', updatePlayhead)
     ws.on('play', () => setIsPlaying(true))
     ws.on('pause', () => setIsPlaying(false))
     ws.on('finish', () => setIsPlaying(false))
@@ -74,8 +91,16 @@ export default function WaveformTrimmer({ url, initialStart, initialEnd, onChang
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="relative rounded-xl overflow-hidden bg-[var(--surface-tertiary)] px-1">
+      <div
+        className="wf-container relative rounded-xl overflow-hidden bg-[var(--surface-tertiary)] px-1"
+        style={{ touchAction: 'none' }}
+      >
         <div ref={containerRef} className="w-full" />
+        <div
+          ref={playheadRef}
+          className="absolute top-0 bottom-0 w-px bg-white/80 pointer-events-none z-10"
+          style={{ left: '0%' }}
+        />
         {!isReady && (
           <div className="absolute inset-0 flex items-center justify-center text-xs text-[var(--muted)]">
             Строим волну…

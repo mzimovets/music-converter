@@ -100,6 +100,32 @@ export default function App() {
     onFileChosen(dropped)
   }
 
+  // Вставка файла из буфера обмена по кнопке (для телефонов, где нет Ctrl+V)
+  const handlePasteButton = async () => {
+    if (!navigator.clipboard?.read) {
+      setError('Ваш браузер не поддерживает вставку из буфера. Выберите файл вручную.')
+      setStage(STAGE.ERROR)
+      return
+    }
+    try {
+      const items = await navigator.clipboard.read()
+      for (const item of items) {
+        const type = item.types.find((t) => t.startsWith('audio/'))
+        if (type) {
+          const blob = await item.getType(type)
+          const ext = type.split('/')[1]?.split(';')[0] || 'bin'
+          onFileChosen(new File([blob], `clipboard-audio.${ext}`, { type }))
+          return
+        }
+      }
+      setError('В буфере обмена нет аудиофайла. Скопируйте файл и попробуйте снова.')
+      setStage(STAGE.ERROR)
+    } catch {
+      setError('Не удалось получить доступ к буферу обмена. Разрешите доступ или выберите файл вручную.')
+      setStage(STAGE.ERROR)
+    }
+  }
+
   // Вставка файла из буфера обмена (Ctrl+V)
   useEffect(() => {
     const onPaste = (e) => {
@@ -236,9 +262,20 @@ export default function App() {
                   Перетащите аудиофайл сюда
                 </p>
                 <p className="text-sm text-[var(--muted)] mt-1">
-                  или нажмите, чтобы выбрать · или вставьте из буфера (Ctrl+V)
+                  или нажмите, чтобы выбрать · или Ctrl+V, чтобы вставить
                 </p>
               </div>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handlePasteButton()
+                }}
+                className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm bg-[var(--surface-secondary)] text-[var(--foreground)] hover:bg-[var(--accent-soft)] hover:text-[var(--accent-soft-foreground)] transition-colors"
+              >
+                <Icon name="upload-square" className="w-4 h-4" />
+                Вставить из буфера обмена
+              </button>
             </div>
           )}
 
