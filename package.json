@@ -1,0 +1,32 @@
+{
+  "name": "audio-converter",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "oxlint",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@ffmpeg/ffmpeg": "^0.12.15",
+    "@ffmpeg/util": "^0.12.2",
+    "@heroui/react": "^3.2.6",
+    "@tailwindcss/vite": "^4.3.3",
+    "framer-motion": "^13.4.4",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "tailwindcss": "^4.3.3",
+    "wavesurfer.js": "^8.0.1"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.7",
+    "@vitejs/plugin-react": "^4.7.0",
+    "oxlint": "^1.81.0",
+    "sharp": "^0.35.4",
+    "vite": "^6.4.3",
+    "vite-plugin-pwa": "^1.3.0"
+  }
+}

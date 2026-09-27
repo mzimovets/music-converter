@@ -1,0 +1,125 @@
+@import "tailwindcss";
+@import "@heroui/styles";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ── Crimson / burgundy theme (задано пользователем: багровый) ── */
+:root,
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --background: oklch(0.19 0.02 20);
+  --foreground: oklch(0.96 0.01 20);
+
+  --surface: oklch(0.24 0.03 18);
+  --surface-foreground: var(--foreground);
+  --surface-secondary: oklch(0.28 0.035 18);
+  --surface-secondary-foreground: var(--foreground);
+  --surface-tertiary: oklch(0.32 0.04 18);
+  --surface-tertiary-foreground: var(--foreground);
+
+  --overlay: oklch(0.26 0.03 18);
+  --overlay-foreground: var(--foreground);
+
+  --muted: oklch(0.68 0.02 20);
+
+  --default: oklch(0.3 0.035 18);
+  --default-foreground: var(--foreground);
+
+  --field-background: oklch(0.27 0.03 18);
+  --field-foreground: var(--foreground);
+  --field-placeholder: var(--muted);
+  --field-border: oklch(0.36 0.05 16);
+
+  --accent: oklch(0.5 0.19 16);
+  --accent-foreground: oklch(0.98 0.01 20);
+
+  --success: oklch(0.72 0.17 152);
+  --success-foreground: oklch(0.15 0.02 152);
+  --warning: oklch(0.79 0.15 72);
+  --warning-foreground: oklch(0.15 0.02 72);
+  --danger: oklch(0.62 0.22 25);
+  --danger-foreground: oklch(0.98 0.01 20);
+
+  --border: oklch(0.36 0.04 18);
+  --separator: oklch(0.33 0.035 18);
+  --focus: var(--accent);
+  --link: var(--accent);
+
+  --backdrop: rgba(8, 2, 4, 0.65);
+
+  color: var(--foreground);
+  background: var(--background);
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family:
+    'Inter',
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+  background:
+    radial-gradient(
+      ellipse 60% 50% at 15% -10%,
+      color-mix(in oklch, var(--accent) 22%, transparent),
+      transparent
+    ),
+    radial-gradient(
+      ellipse 55% 45% at 100% 10%,
+      color-mix(in oklch, var(--accent) 14%, transparent),
+      transparent
+    ),
+    var(--background);
+  background-attachment: fixed;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes float-note {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-4deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(4deg);
+  }
+}
+
+@keyframes pop-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.92) translateY(6px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.animate-pop-in {
+  animation: pop-in 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-float-note {
+  animation: float-note 3.5s ease-in-out infinite;
+}
+
+.dropzone-active {
+  box-shadow: 0 0 0 2px var(--accent);
+}
