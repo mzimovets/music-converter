@@ -11,6 +11,7 @@ export default function WaveformTrimmer({ url, initialStart, initialEnd, onChang
   const regionRef = useRef(null)
   const playheadRef = useRef(null)
   const commitEditRef = useRef(null)
+  const seekAndPlayRef = useRef(null)
   const [range, setRange] = useState({ start: initialStart ?? 0, end: initialEnd ?? 0 })
   const [isPlaying, setIsPlaying] = useState(false)
   const [isReady, setIsReady] = useState(false)
@@ -34,9 +35,40 @@ export default function WaveformTrimmer({ url, initialStart, initialEnd, onChang
       barGap: 2,
       barRadius: 2,
       url,
+      // Клик/драг по самой волне по умолчанию сам перематывает воспроизведение
+      // в произвольную точку — мимо выделения. Отключаем: вся навигация должна
+      // идти только через ручки региона, иначе лёгкий промах пальцем мимо
+      // тонкой ручки (особенно после авто-зума) уводит звук куда попало.
+      interact: false,
       plugins: [regions],
     })
     wsRef.current = ws
+
+    // Играем и останавливаемся напрямую через нативный <audio>-элемент, а не
+    // через ws.play(start, end): у него асинхронный stopAtPosition, и при частых
+    // повторных вызовах (быстрый драг) промисы могут резолвиться не по порядку —
+    // более старый вызов перезаписывает границу более свежего (race condition,
+    // именно из-за неё воспроизведение иногда проскакивало мимо выделения).
+    // Родной timeupdate у медиаэлемента — единственный источник истины для
+    // остановки, и он же надёжнее на iOS Safari, где rAF может притормаживать.
+    const getMedia = () => ws.getMediaElement()
+    const seekAndPlay = (from) => {
+      const media = getMedia()
+      if (!media) return
+      media.currentTime = from
+      media.play().catch(() => {})
+    }
+    seekAndPlayRef.current = seekAndPlay
+    const nativeGuard = () => {
+      const media = getMedia()
+      const region = regionRef.current
+      if (!media || !region) return
+      if (!media.paused && media.currentTime >= region.end - 0.03) {
+        media.pause()
+        media.currentTime = region.end
+      }
+    }
+    getMedia()?.addEventListener('timeupdate', nativeGuard)
 
     // Масштабирует и центрирует волну на выделенном отрезке — подробнее видно, во что превращается обрезка
     const zoomToRegion = (region) => {
@@ -78,12 +110,17 @@ export default function WaveformTrimmer({ url, initialStart, initialEnd, onChang
       onChange?.({ start: region.start, end: region.end, duration: ws.getDuration() })
     }
     // Пока тянут ползунок — сразу проигрываем звук с этой точки (скраб-прослушивание).
-    // play(from, region.end) задаёт нативную stopAtPosition — воспроизведение
-    // гарантированно останавливается на правой границе, а не убегает за неё.
+    // Троттлим сами вызовы play(), чтобы не заваливать iOS Safari десятками
+    // play()/pause() в секунду — визуальный диапазон (commitRange) при этом
+    // обновляется на каждый тик.
+    let lastScrubAt = 0
     const scrubOnDrag = (region, side) => {
-      const from = side === 'end' ? Math.max(region.start, region.end - 1.2) : region.start
-      ws.play(from, region.end)
       commitRange(region)
+      const now = performance.now()
+      if (now - lastScrubAt < 120) return
+      lastScrubAt = now
+      const from = side === 'end' ? Math.max(region.start, region.end - 1.2) : region.start
+      seekAndPlay(from)
     }
     regions.on('region-update', scrubOnDrag)
     regions.on('region-updated', (region) => {
@@ -116,24 +153,26 @@ export default function WaveformTrimmer({ url, initialStart, initialEnd, onChang
     }
 
     return () => {
+      getMedia()?.removeEventListener('timeupdate', nativeGuard)
       ws.destroy()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [url])
 
   const togglePreview = () => {
-    if (!regionRef.current) return
+    const region = regionRef.current
+    if (!region) return
     if (isPlaying) {
-      wsRef.current?.pause()
+      wsRef.current?.getMediaElement()?.pause()
     } else {
-      regionRef.current.play(true)
+      seekAndPlayRef.current?.(region.start)
     }
   }
 
   const restartPreview = () => {
     const region = regionRef.current
-    if (!region || !wsRef.current) return
-    wsRef.current.play(region.start, region.end)
+    if (!region) return
+    seekAndPlayRef.current?.(region.start)
   }
 
   const handleTimeBlur = (field) => (e) => {
