@@ -110,15 +110,10 @@ export default function WaveformTrimmer({ url, initialStart, initialEnd, onChang
       onChange?.({ start: region.start, end: region.end, duration: ws.getDuration() })
     }
     // Пока тянут ползунок — сразу проигрываем звук с этой точки (скраб-прослушивание).
-    // Троттлим сами вызовы play(), чтобы не заваливать iOS Safari десятками
-    // play()/pause() в секунду — визуальный диапазон (commitRange) при этом
-    // обновляется на каждый тик.
-    let lastScrubAt = 0
+    // Без троттлинга: звук должен точно следовать за нарисованной границей на
+    // каждый тик, иначе реальная позиция отстаёт от того, что нарисовано.
     const scrubOnDrag = (region, side) => {
       commitRange(region)
-      const now = performance.now()
-      if (now - lastScrubAt < 120) return
-      lastScrubAt = now
       const from = side === 'end' ? Math.max(region.start, region.end - 1.2) : region.start
       seekAndPlay(from)
     }
