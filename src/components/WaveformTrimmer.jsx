@@ -9,7 +9,6 @@ export default function WaveformTrimmer({ url, initialStart, initialEnd, onChang
   const containerRef = useRef(null)
   const wsRef = useRef(null)
   const regionRef = useRef(null)
-  const playheadRef = useRef(null)
   const commitEditRef = useRef(null)
   const seekAndPlayRef = useRef(null)
   const [range, setRange] = useState({ start: initialStart ?? 0, end: initialEnd ?? 0 })
@@ -29,7 +28,13 @@ export default function WaveformTrimmer({ url, initialStart, initialEnd, onChang
       container: containerRef.current,
       waveColor: 'color-mix(in oklch, var(--foreground) 35%, transparent)',
       progressColor: 'var(--accent)',
-      cursorColor: 'transparent',
+      // Родной курсор wavesurfer — он рисуется той же canvas-системой координат,
+      // что и волна/регион, поэтому не может разъехаться с масштабом/прокруткой,
+      // в отличие от отдельного DOM-оверлея с ручным пересчётом пикселей.
+      cursorColor: 'rgba(255, 255, 255, 0.9)',
+      cursorWidth: 2,
+      autoScroll: true,
+      autoCenter: false,
       height: 72,
       barWidth: 2,
       barGap: 2,
@@ -123,13 +128,6 @@ export default function WaveformTrimmer({ url, initialStart, initialEnd, onChang
       zoomToRegion(region)
     })
 
-    // Двигающаяся полоска текущей позиции воспроизведения
-    const updatePlayhead = (t) => {
-      const dur = ws.getDuration() || 1
-      const pct = Math.min(100, Math.max(0, (t / dur) * 100))
-      if (playheadRef.current) playheadRef.current.style.left = `${pct}%`
-    }
-    ws.on('timeupdate', updatePlayhead)
     ws.on('play', () => setIsPlaying(true))
     ws.on('pause', () => setIsPlaying(false))
     ws.on('finish', () => setIsPlaying(false))
@@ -190,11 +188,6 @@ export default function WaveformTrimmer({ url, initialStart, initialEnd, onChang
         style={{ touchAction: 'none' }}
       >
         <div ref={containerRef} className="w-full" />
-        <div
-          ref={playheadRef}
-          className="absolute top-0 bottom-0 w-px bg-white/80 pointer-events-none z-10"
-          style={{ left: '0%' }}
-        />
         {!isReady && (
           <div className="absolute inset-0 flex items-center justify-center text-xs text-[var(--muted)]">
             Строим волну…
