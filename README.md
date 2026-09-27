@@ -35,3 +35,4 @@ npm run build
 Пуш в `main` автоматически собирает и публикует сайт через GitHub Actions
 (`.github/workflows/deploy.yml`). В настройках репозитория включите
 **Settings → Pages → Source: GitHub Actions**.
+# music-converter
