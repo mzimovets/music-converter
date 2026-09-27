@@ -32,7 +32,15 @@ npm run build
 
 ## Деплой на GitHub Pages
 
-Пуш в `main` автоматически собирает и публикует сайт через GitHub Actions
-(`.github/workflows/deploy.yml`). В настройках репозитория включите
-**Settings → Pages → Source: GitHub Actions**.
-# music-converter
+Сборка кладётся в папку `docs/` (см. `build.outDir` в `vite.config.js`).
+После изменений выполните:
+
+```bash
+npm run build
+git add docs
+git commit -m "Обновить сборку"
+git push
+```
+
+В настройках репозитория один раз включите: **Settings → Pages → Build and
+deployment → Source: Deploy from a branch → Branch: `main` / `docs`**.
