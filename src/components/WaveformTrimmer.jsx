@@ -105,6 +105,8 @@ export default function WaveformTrimmer({ url, initialStart, initialEnd, onChang
       setStartText(formatTimePrecise(region.start))
       setEndText(formatTimePrecise(region.end))
       onChange?.({ start: region.start, end: region.end, duration: dur })
+      const media = getMedia()
+      if (media) media.currentTime = region.start
       setIsReady(true)
     })
 
@@ -143,6 +145,11 @@ export default function WaveformTrimmer({ url, initialStart, initialEnd, onChang
       region.setOptions({ start, end })
       commitRange(region)
       zoomToRegion(region)
+      // Правка полей не двигает курсор воспроизведения сама по себе (в отличие
+      // от драга) — переносим его на новое начало, иначе белая линия остаётся
+      // там, где было предыдущее воспроизведение, вне только что заданного диапазона
+      const media = getMedia()
+      if (media) media.currentTime = start
     }
 
     return () => {
